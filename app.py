@@ -1,14 +1,12 @@
-from flask import Flask, render_template_string, request, redirect, url_for, session
+from flask import Flask, render_template_string, request
 import sqlite3
 import os
 
 app = Flask(__name__)
 app.secret_key = "tekin_almaz_super_secret_key"
 
-# Admin Telegram ID (O'zingizning Telegram ID raqamingizni shu yerga yozing)
-ADMIN_ID = 7849637859  # Misol uchun, o'zgartirishingiz mumkin
+ADMIN_ID = 7849637859  # Admin Telegram ID
 
-# Bazani sozlash
 def init_db():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
@@ -57,12 +55,11 @@ def get_user():
     else:
         balance, referrals = user
         
-    # Tarixni olish
     cursor.execute('SELECT username, amount, wallet, date FROM withdrawals ORDER BY id DESC LIMIT 10')
     history = cursor.fetchall()
     conn.close()
     
-    is_admin = (user_id == ADMIN_ID)
+    is_admin = (int(user_id) == ADMIN_ID)
     
     return {
         "balance": balance,
@@ -98,7 +95,7 @@ def withdraw():
 @app.route('/api/admin/action', methods=['POST'])
 def admin_action():
     data = request.json
-    admin_id = data.get('admin_id')
+    admin_id = int(data.get('admin_id', 0))
     if admin_id != ADMIN_ID:
         return {"success": False, "message": "Ruxsat etilmagan!"}
         
@@ -115,7 +112,6 @@ def admin_action():
     conn.close()
     return {"success": True, "message": "Admin amal bajarildi!"}
 
-# HTML Template (Dahshatli Cyber-Glassmorphism Dizayn)
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="uz">
@@ -135,7 +131,7 @@ HTML_TEMPLATE = """
             overflow-x: hidden;
         }
         .cyber-box {
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 58, 138, 0.3) 100%);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 58, 138, 0.4) 100%);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(59, 130, 246, 0.3);
             box-shadow: 0 0 30px rgba(37, 99, 235, 0.15);
@@ -156,21 +152,6 @@ HTML_TEMPLATE = """
 </head>
 <body class="min-h-screen flex flex-col justify-between pb-24">
     <div class="bg-glow"></div>
-
-    <!-- MAJBURIY OBUNA MODALI -->
-    <div id="sub-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
-        <div class="cyber-box p-6 rounded-3xl max-w-sm w-full text-center space-y-4">
-            <div class="w-16 h-16 mx-auto bg-blue-600/20 border border-blue-500 rounded-2xl flex items-center justify-center text-3xl animate-bounce">
-                📢
-            </div>
-            <h3 class="text-lg font-extrabold text-white">Majburiy Obuna</h3>
-            <p class="text-xs text-slate-300">Botdan to'liq foydalanish uchun homiy kanallarga obuna bo'ling!</p>
-            <div class="space-y-2">
-                <a href="https://t.me/Tekkin_olmos_bot" target="_blank" class="block w-full py-3 bg-slate-900 border border-blue-500/40 rounded-xl text-xs font-bold text-blue-400">1-Kanalga Obuna Bo'lish</a>
-            </div>
-            <button onclick="checkSubscription()" class="cyber-btn w-full py-3 rounded-xl font-bold text-white text-sm">A'zo bo'ldim ✅</button>
-        </div>
-    </div>
 
     <!-- HEADER -->
     <header class="p-4 flex items-center justify-between border-b border-blue-900/40 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
@@ -239,9 +220,13 @@ HTML_TEMPLATE = """
                     <span>Almaz Yechish Shartlari</span>
                 </h3>
                 <p class="text-xs text-slate-300 leading-relaxed">
-                    Balansingizdagi olmoslarni o'yin hisobingizga (Free Fire / PUBG) yoki kartaga yechib oling. Minimal yechish miqdori: <span class="text-blue-400 font-bold">50 ta almaz</span>.
+                    Balansingizdagi olmoslarni o'yin hisobingizga yoki kartaga yechib oling. Minimal yechish: <span class="text-blue-400 font-bold">50 ta almaz</span>.
                 </p>
-                <div class="space-y-3 pt-2">
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-blue-500/20 text-xs space-y-1 mb-2">
+                    <div>Sizning balansingiz: <span id="withdraw-user-bal" class="font-bold text-blue-400">0</span> 💎</div>
+                    <div>Sizning takliflaringiz: <span id="withdraw-user-refs" class="font-bold text-emerald-400">0</span> ta</div>
+                </div>
+                <div class="space-y-3">
                     <div>
                         <label class="text-[11px] font-semibold text-slate-400 block mb-1">Miqdor (Almaz):</label>
                         <input type="number" id="withdraw-amount" placeholder="Masalan: 50" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white outline-none focus:border-blue-500">
@@ -259,11 +244,9 @@ HTML_TEMPLATE = """
         <div id="tab-history" class="space-y-3 hidden">
             <h3 class="text-sm font-extrabold text-white mb-2 flex items-center space-x-2">
                 <i class="fa-solid fa-clock-rotate-left text-blue-400"></i>
-                <span>Oxirgi yechib olingan almazlar</span>
+                <span>Oxirgi yechib olingan almazlar tarixi</span>
             </h3>
-            <div id="history-list" class="space-y-2">
-                <!-- Dinamik to'ldiriladi -->
-            </div>
+            <div id="history-list" class="space-y-2"></div>
         </div>
 
         <!-- SUPPORT TAB -->
@@ -271,7 +254,7 @@ HTML_TEMPLATE = """
             <div class="cyber-box p-6 rounded-3xl text-center space-y-4">
                 <div class="w-16 h-16 mx-auto bg-blue-600/20 border border-blue-500/40 rounded-2xl flex items-center justify-center text-3xl">🎧</div>
                 <h3 class="text-base font-extrabold text-white">Yordam va Murojaat</h3>
-                <p class="text-xs text-slate-300">Savollar yoki muammolar bo'yicha to'g'ridan-to'g'ri administratorga murojaat qiling:</p>
+                <p class="text-xs text-slate-300">Savollar bo'yicha to'g'ridan-to'g'ri administratorga murojaat qiling:</p>
                 <a href="https://t.me/ruzvix" target="_blank" class="cyber-btn block w-full py-3.5 rounded-2xl font-bold text-white text-sm">
                     Admin: @ruzvix 💬
                 </a>
@@ -303,7 +286,7 @@ HTML_TEMPLATE = """
 
     <!-- BOTTOM NAV -->
     <nav class="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-lg border-t border-blue-900/40 p-2 z-40">
-        <div class="max-w-md mx-auto grid grid-cols-5 gap-1 text-center" id="nav-bar-container">
+        <div class="max-w-md mx-auto grid grid-cols-4 gap-1 text-center" id="nav-bar-container">
             <button onclick="switchTab('home')" id="nav-home" class="py-2 rounded-xl text-blue-400 flex flex-col items-center transition">
                 <i class="fa-solid fa-house text-base mb-0.5"></i>
                 <span class="text-[9px] font-medium">Asosiy</span>
@@ -320,20 +303,19 @@ HTML_TEMPLATE = """
                 <i class="fa-solid fa-headset text-base mb-0.5"></i>
                 <span class="text-[9px] font-medium">Murojaat</span>
             </button>
-            <!-- Admin tugma dinamik qo'shiladi -->
         </div>
     </nav>
 
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand();
+        try { tg.expand(); } catch(e){}
 
         let userData = {
             user_id: 7849637859,
-            username: "foydalanuvchi"
+            username: "ruzvix"
         };
 
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
             userData.user_id = tg.initDataUnsafe.user.id;
             userData.username = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name;
         }
@@ -341,7 +323,8 @@ HTML_TEMPLATE = """
         document.getElementById('username-display').innerText = '@' + userData.username;
         document.getElementById('ref-link').value = `https://t.me/Tekkin_olmos_bot?start=${userData.user_id}`;
 
-        let isAdmin = false;
+        let currentBalance = 0;
+        let currentRefs = 0;
 
         function loadUserData() {
             fetch('/api/get_user', {
@@ -351,16 +334,21 @@ HTML_TEMPLATE = """
             })
             .then(res => res.json())
             .then(data => {
-                document.getElementById('balance-display').innerText = data.balance;
-                document.getElementById('referral-count').innerText = data.referrals + " ta";
-                isAdmin = data.is_admin;
+                currentBalance = data.balance;
+                currentRefs = data.referrals;
+                
+                document.getElementById('balance-display').innerText = currentBalance;
+                document.getElementById('referral-count').innerText = currentRefs + " ta";
+                document.getElementById('withdraw-user-bal').innerText = currentBalance;
+                document.getElementById('withdraw-user-refs').innerText = currentRefs;
 
-                if (isAdmin) {
+                if (data.is_admin) {
                     let navContainer = document.getElementById('nav-bar-container');
+                    navContainer.className = "max-w-md mx-auto grid grid-cols-5 gap-1 text-center";
                     if (!document.getElementById('nav-admin')) {
                         let btn = document.createElement('button');
                         btn.id = 'nav-admin';
-                        btn.className = 'py-2 rounded-xl text-amber-400 flex flex-col items-center transition';
+                        btn.className = 'py-2 rounded-xl text-slate-400 flex flex-col items-center transition';
                         btn.onclick = () => switchTab('admin');
                         btn.innerHTML = `<i class="fa-solid fa-shield-halved text-base mb-0.5"></i><span class="text-[9px] font-medium">Admin</span>`;
                         navContainer.appendChild(btn);
@@ -377,10 +365,11 @@ HTML_TEMPLATE = """
                                 <div>
                                     <span class="font-bold text-white">@${item.username}</span>
                                     <div class="text-[10px] text-slate-400">Hamyon: ${item.wallet}</div>
+                                    <div class="text-[9px] text-slate-500">${item.date}</div>
                                 </div>
                                 <div class="text-right">
                                     <span class="font-extrabold text-blue-400">-${item.amount} 💎</span>
-                                    <div class="text-[9px] text-emerald-400">${item.status}</div>
+                                    <div class="text-[9px] text-emerald-400 font-semibold">${item.status}</div>
                                 </div>
                             </div>
                         `;
@@ -393,14 +382,18 @@ HTML_TEMPLATE = """
         loadUserData();
 
         function switchTab(tabName) {
-            tg.HapticFeedback.impactOccurred('light');
+            try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
+            
             ['home', 'withdraw', 'history', 'support', 'admin'].forEach(t => {
                 let el = document.getElementById('tab-' + t);
                 if(el) el.classList.add('hidden');
                 let nav = document.getElementById('nav-' + t);
                 if(nav) nav.className = 'py-2 rounded-xl text-slate-400 flex flex-col items-center transition';
             });
-            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            
+            let targetTab = document.getElementById('tab-' + tabName);
+            if(targetTab) targetTab.classList.remove('hidden');
+            
             let activeNav = document.getElementById('nav-' + tabName);
             if(activeNav) {
                 activeNav.className = tabName === 'admin' 
@@ -413,7 +406,7 @@ HTML_TEMPLATE = """
             let copyText = document.getElementById("ref-link");
             copyText.select();
             navigator.clipboard.writeText(copyText.value);
-            tg.showAlert("Havola nusxalandi! Do'stlaringizga yuboring.");
+            try { tg.showAlert("Havola nusxalandi! Do'stlaringizga yuboring."); } catch(e) { alert("Havola nusxalandi!"); }
         }
 
         function shareLink() {
@@ -425,7 +418,7 @@ HTML_TEMPLATE = """
             let amount = document.getElementById('withdraw-amount').value;
             let wallet = document.getElementById('withdraw-wallet').value;
             if(!amount || !wallet) {
-                tg.showAlert("Barcha maydonlarni to'ldiring!");
+                try { tg.showAlert("Barcha maydonlarni to'ldiring!"); } catch(e) { alert("Barcha maydonlarni to'ldiring!"); }
                 return;
             }
             fetch('/api/withdraw', {
@@ -435,7 +428,7 @@ HTML_TEMPLATE = """
             })
             .then(res => res.json())
             .then(data => {
-                tg.showAlert(data.message);
+                try { tg.showAlert(data.message); } catch(e) { alert(data.message); }
                 if(data.success) {
                     document.getElementById('withdraw-amount').value = '';
                     document.getElementById('withdraw-wallet').value = '';
@@ -462,10 +455,6 @@ HTML_TEMPLATE = """
                 alert(data.message);
                 loadUserData();
             });
-        }
-
-        function checkSubscription() {
-            document.getElementById('sub-modal').classList.add('hidden');
         }
     </script>
 </body>
