@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tekin Almaz UZ</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #070B19;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        .glow-box {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(15, 23, 42, 0.8) 100%);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 25px rgba(37, 99, 235, 0.15);
+        }
+        .glow-btn {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+            transition: all 0.3s ease;
+        }
+        .glow-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.8);
+        }
+        .diamond-bg {
+            background: radial-gradient(circle at center, rgba(37, 99, 235, 0.2) 0%, transparent 70%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative diamond-bg pb-20">
+
+    <!-- Header / Top Profile Bar -->
+    <header class="p-4 flex items-center justify-between border-b border-blue-900/40 bg-slate-950/60 backdrop-blur-md sticky top-0 z-50">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-lg shadow-inner">
+                💎
+            </div>
+            <div>
+                <h1 class="text-sm font-bold text-blue-400 tracking-wide">TEKIN ALMAZ</h1>
+                <p class="text-xs text-slate-400" id="username">@foydalanuvchi</p>
+            </div>
+        </div>
+        <div class="glow-box px-3 py-1.5 rounded-full flex items-center space-x-2">
+            <span class="text-blue-400">💎</span>
+            <span class="font-extrabold text-sm text-white" id="user-balance">0</span>
+            <span class="text-xs text-slate-400">Almaz</span>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-md w-full mx-auto p-4 space-y-5">
+
+        <!-- Hero Card / Banner -->
+        <div class="glow-box rounded-3xl p-6 text-center relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
+            <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-3xl shadow-lg shadow-blue-500/30 animate-pulse">
+                💎
+            </div>
+            <h2 class="text-xl font-extrabold text-white mb-1">Bepul Almazlar Yig'ing!</h2>
+            <p class="text-xs text-slate-300 mb-5 leading-relaxed">
+                Do'stlaringizni taklif qiling va har bir muvaffaqiyatli taklif uchun <span class="text-blue-400 font-bold">10 tadan Almaz</span> oling!
+            </p>
+            <button onclick="shareLink()" class="glow-btn w-full py-3.5 rounded-2xl font-bold text-white flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span>Do'stlarga Ulashish</span>
+            </button>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="glow-box p-4 rounded-2xl flex flex-col justify-between">
+                <div class="text-slate-400 text-xs font-medium mb-2 flex items-center justify-between">
+                    <span>Takliflar</span>
+                    <i class="fa-solid fa-users text-blue-400"></i>
+                </div>
+                <div class="text-2xl font-extrabold text-white" id="referral-count">0 <span class="text-xs font-normal text-slate-400">ta</span></div>
+            </div>
+            <div class="glow-box p-4 rounded-2xl flex flex-col justify-between">
+                <div class="text-slate-400 text-xs font-medium mb-2 flex items-center justify-between">
+                    <span>Status</span>
+                    <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                </div>
+                <div class="text-sm font-bold text-emerald-400 mt-1">Faol 🚀</div>
+            </div>
+        </div>
+
+        <!-- Referral Link Section -->
+        <div class="glow-box p-4 rounded-2xl space-y-3">
+            <label class="text-xs font-semibold text-slate-300 block">Sizning taklif havolangiz:</label>
+            <div class="flex items-center space-x-2 bg-slate-900/80 border border-slate-800 rounded-xl p-2">
+                <input type="text" id="ref-link" readonly value="https://t.me/Tekkin_olmos_bot?start=7849637859" class="bg-transparent text-xs text-slate-300 w-full outline-none px-1">
+                <button onclick="copyLink()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                    <i class="fa-regular fa-copy"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-lg border-t border-blue-900/40 p-2 z-50">
+        <div class="max-w-md mx-auto grid grid-cols-4 gap-1 text-center">
+            <button onclick="switchTab('home')" id="nav-home" class="py-2 rounded-xl text-blue-400 flex flex-col items-center transition">
+                <i class="fa-solid fa-house text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Asosiy</span>
+            </button>
+            <button onclick="switchTab('withdraw')" id="nav-withdraw" class="py-2 rounded-xl text-slate-400 hover:text-blue-400 flex flex-col items-center transition">
+                <i class="fa-solid fa-gem text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Yechish</span>
+            </button>
+            <button onclick="switchTab('history')" id="nav-history" class="py-2 rounded-xl text-slate-400 hover:text-blue-400 flex flex-col items-center transition">
+                <i class="fa-solid fa-clock-rotate-left text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Tarix</span>
+            </button>
+            <button onclick="switchTab('support')" id="nav-support" class="py-2 rounded-xl text-slate-400 hover:text-blue-400 flex flex-col items-center transition">
+                <i class="fa-solid fa-headset text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Murojaat</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Foydalanuvchi ma'lumotlarini Telegram'dan olish
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            let user = tg.initDataUnsafe.user;
+            document.getElementById('username').innerText = '@' + (user.username || user.first_name);
+        }
+
+        // Tasodifiy yoki localStorage dan ma'lumot olish
+        let state = {
+            balance: 0,
+            referrals: 0,
+            link: "https://t.me/Tekkin_olmos_bot?start=7849637859"
+        };
+
+        document.getElementById('user-balance').innerText = state.balance;
+        document.getElementById('referral-count').innerText = state.referrals + " ta";
+        document.getElementById('ref-link').value = state.link;
+
+        function copyLink() {
+            let copyText = document.getElementById("ref-link");
+            copyText.select();
+            navigator.clipboard.writeText(copyText.value);
+            tg.showAlert("Havola nusxalandi! Do'stlaringizga yuboring.");
+        }
+
+        function shareLink() {
+            let text = encodeURIComponent("💎 Tekin Almaz yig'ish va o'yinlarga almoslar olish uchun ushbu botga kiring!");
+            let url = `https://t.me/share/url?url=${encodeURIComponent(state.link)}&text=${text}`;
+            window.open(url, '_blank');
+        }
+
+        function switchTab(tab) {
+            // Bu yerda sahifalararo o'tish logikasini kengaytirishingiz mumkin
+            tg.HapticFeedback.impactOccurred('light');
+            if(tab === 'withdraw') {
+                tg.showAlert("Almaz yechish uchun minimal miqdor: 50 ta almaz.");
+            } else if(tab === 'support') {
+                window.open('https://t.me/Tekkin_olmos_bot', '_blank');
+            } else if(tab === 'history') {
+                tg.showAlert("Hozircha tranzaksiyalar tarixi bo'sh.");
+            }
+        }
+    </script>
+</body>
+</html>
